@@ -13,7 +13,7 @@ export const useCursors = (
   const [cursors, setCursorData] = useState<Cursor[]>([]);
 
   useEffect(() => {
-    editor.awareness.on('update', () => {
+    function handleAwarenessUpdate() {
       const newCursorData = Array.from(editor.awareness.getStates())
         .filter(([clientId]) => clientId !== editor.sharedType.doc?.clientID)
         .map(([, awareness]) => {
@@ -38,8 +38,12 @@ export const useCursors = (
         })
         .filter((cursor) => cursor.anchor && cursor.focus);
 
-      setCursorData((newCursorData as unknown) as Cursor[]);
-    });
+      setCursorData(newCursorData as unknown as Cursor[]);
+    }
+
+    editor.awareness.on('update', handleAwarenessUpdate);
+
+    return () => editor.awareness.off('update', handleAwarenessUpdate);
   }, [editor]);
 
   const decorate = useCallback(
